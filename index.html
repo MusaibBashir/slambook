@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Sign My Slambook</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --bg:#330000; --deep:#660000; --rose1:#ffd1d1; --rose2:#ff8a8a;
+  --cream:#f4ece2; --ink:#f6efe6; --muted:rgba(246,239,230,.58);
+  --line:rgba(255,209,209,.22); --line2:rgba(255,209,209,.14);
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:'Inter',system-ui,sans-serif;color:var(--ink);background:var(--bg);overflow-x:hidden;min-height:100vh;-webkit-font-smoothing:antialiased}
+#bg{position:fixed;inset:0;z-index:0;background:radial-gradient(130% 130% at 66% 38%,#8f1e1e 0%,#5c0606 42%,#2c0000 100%)}
+#bg canvas{display:block;width:100vw!important;height:100vh!important}
+.halftone{position:fixed;inset:0;z-index:1;pointer-events:none;mix-blend-mode:soft-light;opacity:.5;
+  background-image:radial-gradient(rgba(255,255,255,.9) .6px,transparent 1.1px),radial-gradient(rgba(0,0,0,.7) .6px,transparent 1.1px);
+  background-size:4px 4px,4px 4px;background-position:0 0,2px 2px}
+.vign{position:fixed;inset:0;z-index:1;pointer-events:none;background:radial-gradient(120% 100% at 50% 45%,transparent 55%,rgba(20,0,0,.55) 100%)}
+.wrap{position:relative;z-index:2;min-height:100vh;min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:26px}
+
+.panel{width:min(660px,95vw);position:relative;background:rgba(28,2,2,.34);border:1px solid var(--line);border-radius:20px;
+  box-shadow:0 30px 90px rgba(20,0,0,.5),inset 0 1px 0 rgba(255,255,255,.06);backdrop-filter:blur(14px) saturate(130%);-webkit-backdrop-filter:blur(14px) saturate(130%);padding:44px 46px 36px}
+.label{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--rose2)}
+.title{font-family:'Inter Tight',sans-serif;font-weight:800;line-height:.98;letter-spacing:-.02em;font-size:clamp(34px,7.4vw,60px);margin:16px 0 12px}
+.title .thin{font-weight:500;color:var(--muted)}
+.grad{background:linear-gradient(96deg,var(--rose1),var(--rose2) 60%,#ffb0a0);-webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{color:var(--muted);font-size:16px;line-height:1.6;max-width:46ch}
+
+.progress{display:flex;align-items:center;gap:14px;margin-bottom:30px}
+.bar{flex:1;height:2px;background:var(--line2);position:relative;overflow:hidden}
+.bar>i{position:absolute;left:0;top:0;height:100%;width:0;background:linear-gradient(90deg,var(--rose1),var(--rose2));transition:width .55s var(--ease)}
+.count{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:.1em}
+
+.q-icon{width:38px;height:38px;color:var(--rose2);margin-bottom:18px}
+.q-icon svg{width:100%;height:100%;display:block}
+.q-label{font-family:'Inter Tight',sans-serif;font-weight:700;font-size:clamp(24px,4.3vw,34px);line-height:1.1;letter-spacing:-.015em;margin-bottom:8px;perspective:600px}
+.wc{display:inline-block;will-change:transform,opacity}
+.q-hint{color:var(--muted);font-size:14px;margin-bottom:26px}
+
+.field input[type=text],.field textarea,.field input[type=date]{width:100%;background:rgba(255,255,255,.04);border:1px solid var(--line);color:var(--ink);font-family:inherit;font-size:17px;padding:15px 17px;border-radius:12px;outline:none;transition:border .25s,background .25s,box-shadow .25s;resize:none}
+.field textarea{min-height:118px;line-height:1.55}
+.field input::placeholder,.field textarea::placeholder{color:rgba(246,239,230,.34)}
+.field input:focus,.field textarea:focus{border-color:var(--rose2);background:rgba(255,255,255,.07);box-shadow:0 0 0 4px rgba(255,138,138,.14)}
+
+.chips{display:flex;flex-wrap:wrap;gap:9px}
+.chip{cursor:pointer;user-select:none;padding:10px 17px;border-radius:99px;font-size:14px;font-weight:500;background:rgba(255,255,255,.03);border:1px solid var(--line);transition:all .2s var(--ease)}
+.chip:hover{background:rgba(255,255,255,.09);transform:translateY(-2px)}
+.chip.on{background:linear-gradient(96deg,var(--rose1),var(--rose2));border-color:transparent;color:#3a0505;font-weight:600}
+
+.rate{display:flex;align-items:center;gap:10px}
+.rt{width:38px;height:38px;cursor:pointer;color:var(--rose2);opacity:.4;transition:transform .16s var(--ease),opacity .16s}
+.rt svg{width:100%;height:100%;display:block}
+.rt svg path{fill:none;stroke:currentColor;stroke-width:1.6;transition:fill .16s}
+.rt:hover{transform:scale(1.16)}
+.rt.on{opacity:1}
+.rt.on svg path{fill:currentColor}
+.rnum{margin-left:8px;font-family:'Inter Tight',sans-serif;font-weight:700;font-size:20px;color:var(--rose1);min-width:42px}
+
+.nav{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:32px}
+.btn{cursor:pointer;font-family:'Inter Tight',sans-serif;font-weight:600;font-size:15px;border:none;border-radius:99px;padding:14px 28px;transition:transform .2s var(--ease),box-shadow .25s,opacity .2s,background .2s;display:inline-flex;align-items:center;gap:8px}
+.btn.primary{background:var(--cream);color:#3a0505;box-shadow:0 12px 30px rgba(0,0,0,.28)}
+.btn.primary:hover{transform:translateY(-3px);box-shadow:0 18px 40px rgba(0,0,0,.4)}
+.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink)}
+.btn.ghost:hover{background:rgba(255,255,255,.07)}
+.btn:disabled{opacity:.4;pointer-events:none}
+.btn.mini{padding:11px 20px;font-size:13px}
+.center{text-align:center}.stack{display:flex;flex-direction:column;align-items:center;gap:10px}
+
+.badge{display:inline-flex;align-items:center;gap:8px;padding:7px 15px;border-radius:99px;background:rgba(255,138,138,.12);border:1px solid rgba(255,138,138,.4);color:var(--rose1);font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase}
+.review-list{display:flex;flex-direction:column;gap:10px;max-height:44vh;overflow:auto;padding-right:6px;margin-top:8px}
+.review-list::-webkit-scrollbar{width:5px}.review-list::-webkit-scrollbar-thumb{background:var(--line);border-radius:9px}
+.rev{background:rgba(255,255,255,.03);border:1px solid var(--line2);border-radius:11px;padding:12px 15px}
+.rev b{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--rose2)}
+.rev p{font-size:15px;margin-top:4px;word-break:break-word}.rev .miss{color:var(--muted);font-style:italic}
+.confetti{position:fixed;inset:0;z-index:9;pointer-events:none}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(90px);z-index:20;background:rgba(20,0,0,.9);border:1px solid var(--line);color:var(--ink);padding:13px 22px;border-radius:99px;font-size:14px;backdrop-filter:blur(10px);transition:transform .4s var(--ease)}
+.toast.show{transform:translateX(-50%) translateY(0)}.toast.err{border-color:rgba(255,138,138,.6)}
+@keyframes floatOut{to{opacity:0;transform:translateY(-18px)}}
+.leave{animation:floatOut .34s var(--ease) both}
+@media(max-width:520px){.panel{padding:32px 24px 28px}.nav{flex-wrap:wrap}.rt,.q-icon{width:32px;height:32px}}
+</style>
+</head>
+<body>
+<div id="bg"></div>
+<div class="halftone"></div>
+<div class="vign"></div>
+<canvas class="confetti" id="confetti"></canvas>
+<div class="wrap" id="stage"></div>
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<!-- ================= CORE APP (classic script, always runs) ================= -->
+<script>
+const SUPA_URL="https://hnwpngmnhepoogeyujup.supabase.co";
+const SUPA_KEY="sb_publishable_P6I4s-yQmoqKoM2BBrrh6Q_J47ay59b";
+const sb=window.supabase.createClient(SUPA_URL,SUPA_KEY);
+
+/* ---- line-art icons (stroke, no fill) ---- */
+const I={
+ user:'<path d="M12 12.5a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4.5 20c.6-3.7 3.8-5.5 7.5-5.5s6.9 1.8 7.5 5.5"/>',
+ spark:'<path d="M12 3l1.9 5.6L19 10l-5.1 1.4L12 17l-1.9-5.6L5 10l5.1-1.4z"/>',
+ cake:'<path d="M4 20.5h16M5 20.5V14h14v6.5M6 14c0-1.6 12-1.6 12 0M12 6.5V9M9 7v2M15 7v2"/>',
+ quote:'<path d="M4.5 5.5h15v9H9l-4.5 4v-13z"/>',
+ face:'<path d="M12 20.5a8.5 8.5 0 1 0 0-17 8.5 8.5 0 0 0 0 17zM8.8 14c1.7 1.7 4.7 1.7 6.4 0M9 10h.01M15 10h.01"/>',
+ music:'<path d="M9 17.5V6l10-2v11.5M9 17.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0zM19 15.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/>',
+ bowl:'<path d="M3.5 11.5h17a8.5 8.5 0 0 1-17 0zM8.5 8c0-1.5 1-2 1-3M12 8c0-1.5 1-2 1-3M15.5 8c0-1.5 1-2 1-3"/>',
+ drop:'<path d="M12 3.5s6 6.3 6 10.5a6 6 0 1 1-12 0c0-4.2 6-10.5 6-10.5z"/>',
+ rocket:'<path d="M5.5 15c-1.2 1.8-1.3 4-1.3 4s2.2-.1 4-1.3M9 15l-3-3c.8-5 4.6-8.4 9.5-9.3.9 4.9-2.5 8.7-7.5 9.5L9 15zM14 10.2a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"/>',
+ star:'<path d="M12 3.5l2.7 5.9 6.3.6-4.8 4.2 1.5 6.3L12 17.4l-5.7 3.1 1.5-6.3L3 10l6.3-.6z"/>',
+ sprout:'<path d="M12 21v-8.5M12 12.5c-3.3 0-5.5-2.2-5.5-5.5 3.3 0 5.5 2.2 5.5 5.5zM12 11c0-3 2-4.5 4.5-4.5 0 3-2 4.5-4.5 4.5z"/>',
+ heart:'<path d="M12 20s-7.2-4.6-7.2-10A4.2 4.2 0 0 1 12 7a4.2 4.2 0 0 1 7.2 3c0 5.4-7.2 10-7.2 10z"/>',
+ hands:'<path d="M12 17.5s-4.3-2.7-4.3-5.9A2.5 2.5 0 0 1 12 9.5a2.5 2.5 0 0 1 4.3 2.1c0 3.2-4.3 5.9-4.3 5.9zM4 13l3.2 4.4M20 13l-3.2 4.4"/>',
+ film:'<path d="M4.5 5.5h15v13h-15zM8.5 5.5v13M15.5 5.5v13M4.5 9h4M4.5 15h4M15.5 9h4M15.5 15h4"/>',
+ camera:'<path d="M3.5 8h4l1.5-2.2h6L16.5 8h4v11h-17zM12 16.5a3.3 3.3 0 1 0 0-6.6 3.3 3.3 0 0 0 0 6.6z"/>',
+ wand:'<path d="M4.5 19.5l9.5-9.5M15 6l.9-2 .9 2 2 .9-2 .9-.9 2-.9-2-2-.9zM19 12.5l.5-1.2.5 1.2 1.2.5-1.2.5-.5 1.2-.5-1.2-1.2-.5z"/>',
+ compass:'<path d="M12 20.5a8.5 8.5 0 1 0 0-17 8.5 8.5 0 0 0 0 17zM15.5 8.5l-2.2 5.3-5.3 2.2 2.2-5.3z"/>',
+ flag:'<path d="M6 21V4M6 4.8h11.5l-2.3 3.3 2.3 3.3H6"/>',
+ wrench:'<path d="M15.4 6.3a4 4 0 0 0-5.2 5.2l-6 6 2.3 2.3 6-6a4 4 0 0 0 5.2-5.2l-2.2 2.2-2.1-.6-.6-2.1z"/>',
+ glass:'<path d="M6 3.5h12M6 20.5h12M7.5 3.5c0 4.5 9 5 9 8.5s-9 4-9 8.5M16.5 3.5c0 4.5-9 5-9 8.5"/>',
+ shake:'<path d="M3.5 12l4-4 3 2.4 3-2.4 4 4M8.5 8.4l3 3M12 15.4l-2-2M6 12.2v3.8M18 12.2v3.8"/>',
+ clap:'<path d="M4 10h16v9H4zM4 10l2-4 12 2.4M6 6l1.6 3.4M10 6.8l1.6 3.4M14 7.6l1.6 3.4"/>',
+ tv:'<path d="M4 8.5h16v10H4zM9 4.5l3 3 3-3"/>',
+ book:'<path d="M6.5 4.5H18v15H6.5A1.5 1.5 0 0 1 5 18V6a1.5 1.5 0 0 1 1.5-1.5zM8.5 4.5v15"/>',
+ pin:'<path d="M12 21s6-5.3 6-10a6 6 0 1 0-12 0c0 4.7 6 10 6 10zM12 13.2a2.4 2.4 0 1 0 0-4.8 2.4 2.4 0 0 0 0 4.8z"/>',
+ game:'<path d="M8 15.5l-1.3 1.8A2.5 2.5 0 0 1 2.1 15.4L3.4 10A3 3 0 0 1 6.3 7.5h11.4a3 3 0 0 1 2.9 2.5l1.3 5.4a2.5 2.5 0 0 1-4.6 1.9L16 15.5zM6.5 10.5v2.5M5.2 11.7h2.6M15.5 11h.01M17.8 12.4h.01"/>',
+ sun:'<path d="M12 8.2a3.8 3.8 0 1 0 0 7.6 3.8 3.8 0 0 0 0-7.6zM12 3v2.2M12 18.8V21M4.2 4.2l1.6 1.6M18.2 18.2l1.6 1.6M3 12h2.2M18.8 12H21M4.2 19.8l1.6-1.6M18.2 5.8l1.6-1.6"/>'
+};
+const ic=k=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${I[k]}</svg>`;
+
+/* ---- questions: about YOU + about US ---- */
+const QUESTIONS=[
+ {key:"name",icon:"user",label:"First things first, what's your name?",hint:"So I know whose page this is.",type:"text",placeholder:"Type your name…",required:true},
+ {key:"nick",icon:"spark",label:"What do I call you?",hint:"Nickname, inside joke, whatever sticks.",type:"text",placeholder:"e.g. bro, bestie, chief…"},
+ {key:"bday",icon:"cake",label:"When's your birthday?",hint:"So I never forget the cake.",type:"date"},
+ {key:"three_words",icon:"quote",label:"Describe yourself in 3 words.",hint:"First three that come to mind.",type:"text",placeholder:"e.g. loud, loyal, curious"},
+ {key:"vibe",icon:"face",label:"Your current vibe is…",hint:"Pick what fits today.",type:"choice",options:["Dreamy","Chaotic","Cozy","Main character","Sleepy","Unbothered"]},
+ {key:"song_you",icon:"music",label:"Song on repeat for you right now?",hint:"The one you'd never skip.",type:"text",placeholder:"Artist / Track"},
+ {key:"food",icon:"bowl",label:"Comfort food you'd never say no to?",hint:"",type:"text",placeholder:"e.g. Maggi at 2am"},
+ {key:"color",icon:"drop",label:"Your signature colour?",hint:"",type:"choice",options:["Rose","Crimson","Blush","Gold","Forest","Midnight"]},
+ {key:"fav_movie",icon:"clap",label:"Favourite movie of all time?",hint:"The one you'll always rewatch.",type:"text",placeholder:"e.g. Interstellar"},
+ {key:"fav_song",icon:"music",label:"Favourite song, ever?",hint:"Not a phase; a forever one.",type:"text",placeholder:"Artist / Track"},
+ {key:"fav_show",icon:"tv",label:"A show you could rewatch forever?",hint:"",type:"text",placeholder:"e.g. The Office"},
+ {key:"fav_book",icon:"book",label:"A book or comic you love?",hint:"",type:"text",placeholder:"Title, author"},
+ {key:"fav_place",icon:"pin",label:"Favourite place you've been, or dream of going?",hint:"",type:"text",placeholder:"e.g. Manali"},
+ {key:"hobby",icon:"game",label:"Something you nerd out about?",hint:"A hobby, game, obsession.",type:"text",placeholder:"e.g. chess, football, anime"},
+ {key:"happy_place",icon:"sun",label:"What instantly makes your day better?",hint:"Little things count.",type:"text",placeholder:"Say it."},
+ {key:"life_motto",icon:"quote",label:"Your life motto in one line?",hint:"Words you live by.",type:"text",placeholder:"Say it."},
+ {key:"dream",icon:"rocket",label:"One dream you're chasing?",hint:"Think big; nobody's watching.",type:"textarea",placeholder:"Someday I want to…"},
+ {key:"my_quality",icon:"star",label:"Give me ONE quality of yours you're proud of.",hint:"Something that's very *you*.",type:"textarea",placeholder:"One thing I bring is…"},
+ {key:"how_met",icon:"sprout",label:"How did our friendship actually begin?",hint:"Take me back to day one.",type:"textarea",placeholder:"It all started when…"},
+ {key:"friend_rating",icon:"heart",label:"Rate our friendship.",hint:"0 = strangers … 5 = ride or die.",type:"rating",primary:true},
+ {key:"me_rating",icon:"hands",label:"Now rate ME as a friend.",hint:"Be fair. Be brutal. I can take it.",type:"rating"},
+ {key:"genre",icon:"film",label:"If our friendship were a genre…",hint:"",type:"choice",options:["Comedy","Adventure","Chaos","Slice of life","Drama","Musical"]},
+ {key:"memory",icon:"camera",label:"Favourite memory of us so far?",hint:"The one that makes you smile instantly.",type:"textarea",placeholder:"Remember that time…"},
+ {key:"song_us",icon:"music",label:"A song that reminds you of us.",hint:"Our unofficial anthem.",type:"text",placeholder:"Artist / Track"},
+ {key:"steal_quality",icon:"wand",label:"STEAL one quality from me. Which one?",hint:"If you could copy one trait of mine onto you.",type:"textarea",placeholder:"I'd steal your…"},
+ {key:"bucket",icon:"compass",label:"One bucket-list thing to do WITH me?",hint:"Trip, adventure, anything. Dream big.",type:"textarea",placeholder:"Someday, you and me, we should…"},
+ {key:"green_flag",icon:"flag",label:"Best thing about being my friend?",hint:"My biggest green flag, in your words.",type:"textarea",placeholder:"The best part is…"},
+ {key:"change",icon:"wrench",label:"Brutally honest: one thing you'd change about me?",hint:"Roast gently. Growth is love.",type:"textarea",placeholder:"If I'm honest…"},
+ {key:"miss_rating",icon:"glass",label:"How much would you miss me if I vanished a year?",hint:"0 = who? … 5 = don't you dare.",type:"rating"},
+ {key:"promise",icon:"shake",label:"Leave me one promise or line of advice.",hint:"Your signature closing note.",type:"textarea",placeholder:"I promise… / Never forget…"}
+];
+const RATE_MAX=5;
+
+const stage=document.getElementById("stage");
+let answers={},idx=0;
+
+function swap(html){
+ const old=stage.firstElementChild;
+ if(old){old.classList.add("leave");old.addEventListener("animationend",()=>old.remove(),{once:true});}
+ const el=document.createElement("div");el.innerHTML=html;const node=el.firstElementChild;
+ node.animate([{opacity:0,transform:'translateY(24px)'},{opacity:1,transform:'none'}],{duration:500,easing:'cubic-bezier(.22,1,.36,1)',fill:'both'});
+ stage.appendChild(node);return node;
+}
+function revealHeading(el){
+ if(!el)return;
+ if(window.GSAP_REVEAL){window.GSAP_REVEAL(el);}
+ else el.animate([{opacity:0,filter:'blur(9px)',transform:'translateY(10px)'},{opacity:1,filter:'blur(0)',transform:'none'}],{duration:650,easing:'cubic-bezier(.22,1,.36,1)',fill:'both'});
+}
+
+function screenWelcome(){
+ const n=swap(`<div class="panel center">
+   <span class="label">a slambook, but make it us</span>
+   <h1 class="title">Sign <span class="grad">my page</span>.<br/><span class="thin">Tell me about us.</span></h1>
+   <p class="sub" style="margin:0 auto 28px">${QUESTIONS.length} questions: about you, and about us. Rate me, roast me, dream with me. Two minutes, and I read every word.</p>
+   <div class="stack"><button class="btn primary" id="start">Start →</button></div></div>`);
+ revealHeading(n.querySelector(".title"));
+ n.querySelector("#start").onclick=()=>{answers={};idx=0;screenQuestion();};
+}
+
+function screenQuestion(){
+ const q=QUESTIONS[idx];const val=answers[q.key]??"";
+ let control="";
+ if(q.type==="text")control=`<div class="field"><input type="text" id="inp" placeholder="${q.placeholder||''}" value="${escA(val)}" autocomplete="off"/></div>`;
+ else if(q.type==="date")control=`<div class="field"><input type="date" id="inp" value="${escA(val)}"/></div>`;
+ else if(q.type==="textarea")control=`<div class="field"><textarea id="inp" placeholder="${q.placeholder||''}">${escH(val)}</textarea></div>`;
+ else if(q.type==="choice")control=`<div class="chips" id="chips">`+q.options.map(o=>`<span class="chip ${val===o?'on':''}" data-v="${escA(o)}">${o}</span>`).join("")+`</div>`;
+ else if(q.type==="rating"){let h="";for(let i=1;i<=RATE_MAX;i++)h+=`<span class="rt ${val&&i<=val?'on':''}" data-v="${i}">${ic('heart')}</span>`;control=`<div class="rate" id="rate">${h}<span class="rnum" id="rnum">${val?val+' / '+RATE_MAX:''}</span></div>`;}
+ const pct=Math.round(idx/QUESTIONS.length*100);
+ const n=swap(`<div class="panel">
+   <div class="progress"><div class="bar"><i style="width:${pct}%"></i></div><span class="count">${String(idx+1).padStart(2,'0')} / ${QUESTIONS.length}</span></div>
+   <div class="q-icon">${ic(q.icon)}</div>
+   <div class="q-label">${escH(q.label)}</div>
+   <div class="q-hint">${q.hint||''}</div>
+   ${control}
+   <div class="nav"><button class="btn ghost mini" id="back" ${idx===0?'style="visibility:hidden"':''}>← Back</button>
+   <button class="btn primary" id="next">${idx===QUESTIONS.length-1?'Review →':'Next →'}</button></div></div>`);
+ revealHeading(n.querySelector(".q-label"));
+ const inp=n.querySelector("#inp");
+ if(inp){inp.focus();inp.addEventListener("keydown",e=>{if(e.key==="Enter"&&q.type!=="textarea"){e.preventDefault();go(1);}});}
+ if(q.type==="choice")n.querySelectorAll(".chip").forEach(c=>c.onclick=()=>{n.querySelectorAll(".chip").forEach(x=>x.classList.remove("on"));c.classList.add("on");answers[q.key]=c.dataset.v;});
+ if(q.type==="rating"){
+   const hs=[...n.querySelectorAll(".rt")],num=n.querySelector("#rnum");
+   const paint=v=>hs.forEach(h=>h.classList.toggle("on",+h.dataset.v<=v));
+   hs.forEach(h=>{h.onmouseenter=()=>paint(+h.dataset.v);h.onmouseleave=()=>paint(answers[q.key]||0);
+     h.onclick=()=>{const v=+h.dataset.v;answers[q.key]=(answers[q.key]===v?0:v);paint(answers[q.key]);num.textContent=answers[q.key]?answers[q.key]+' / '+RATE_MAX:'';};});
+ }
+ function collect(){if(inp)answers[q.key]=inp.value.trim();}
+ function go(dir){collect();
+   if(dir>0&&q.required&&!String(answers[q.key]||"").trim()){inp&&inp.focus();shake(n.querySelector(".field")||n);return;}
+   if(dir>0){idx++;idx>=QUESTIONS.length?screenReview():screenQuestion();}else{idx--;screenQuestion();}}
+ n.querySelector("#next").onclick=()=>go(1);
+ const b=n.querySelector("#back");if(b)b.onclick=()=>go(-1);
+}
+
+function screenReview(){
+ const rows=QUESTIONS.map(q=>{let v=answers[q.key];
+   const shown=q.type==="rating"?(v?`${v} / ${RATE_MAX}`:""):String(v||"").trim();
+   return `<div class="rev"><b>${escH(q.label)}</b><p class="${shown?'':'miss'}">${shown?escH(shown):'(left blank)'}</p></div>`;}).join("");
+ const n=swap(`<div class="panel">
+   <span class="label">almost done</span>
+   <h1 class="title" style="font-size:clamp(28px,5vw,42px);margin:12px 0 4px">Look good?</h1>
+   <p class="sub" style="margin-bottom:14px">Send it to drop your page into my slambook.</p>
+   <div class="review-list">${rows}</div>
+   <div class="nav"><button class="btn ghost mini" id="edit">← Edit</button><button class="btn primary" id="submit">Send my page →</button></div></div>`);
+ revealHeading(n.querySelector(".title"));
+ n.querySelector("#edit").onclick=()=>{idx=QUESTIONS.length-1;screenQuestion();};
+ n.querySelector("#submit").onclick=async(e)=>{
+   const btn=e.currentTarget;btn.disabled=true;btn.textContent="Sending…";
+   const payload={name:answers.name||"Anonymous",overall_rating:answers.friend_rating??null,data:{...answers}};
+   try{const {error}=await sb.from("slambook_entries").insert(payload);if(error)throw error;burst();screenDone();}
+   catch(err){btn.disabled=false;btn.textContent="Send my page →";toast("Couldn't send. Check your internet and try again.",true);console.error(err);}
+ };
+}
+
+function screenDone(){
+ const name=(answers.name||"You").split(" ")[0];
+ const n=swap(`<div class="panel center">
+   <div class="q-icon" style="width:46px;height:46px;margin:0 auto 14px">${ic('heart')}</div>
+   <span class="badge" style="margin:0 auto 18px">Signed &amp; saved</span>
+   <h1 class="title">Thank you,<br/><span class="grad">${escH(name)}</span>.</h1>
+   <p class="sub" style="margin:0 auto 26px">Your page is in my slambook now. This one means a lot. Really.</p>
+   <div class="stack"><button class="btn primary" id="again">Sign again for someone else +</button></div></div>`);
+ revealHeading(n.querySelector(".title"));
+ n.querySelector("#again").onclick=()=>{answers={};idx=0;screenWelcome();};
+}
+
+function escH(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function escA(s){return escH(s);}
+function shake(el){el.animate([{transform:'translateX(0)'},{transform:'translateX(-8px)'},{transform:'translateX(8px)'},{transform:'translateX(-5px)'},{transform:'translateX(0)'}],{duration:320,easing:'ease-in-out'});}
+const toastEl=document.getElementById("toast");let toastT;
+function toast(m,err){toastEl.textContent=m;toastEl.classList.toggle("err",!!err);toastEl.classList.add("show");clearTimeout(toastT);toastT=setTimeout(()=>toastEl.classList.remove("show"),3600);}
+
+/* confetti */
+const cc=document.getElementById("confetti"),cx=cc.getContext("2d");let parts=[];
+function sizeC(){cc.width=innerWidth;cc.height=innerHeight;}sizeC();addEventListener("resize",sizeC);
+function burst(){const cols=["#ffd1d1","#ff8a8a","#f4ece2","#ffb0a0","#cc4b4b"];parts=[];
+ for(let i=0;i<170;i++)parts.push({x:innerWidth/2,y:innerHeight/2,vx:(Math.random()-.5)*14,vy:(Math.random()-1)*15,g:.35+Math.random()*.2,r:4+Math.random()*6,c:cols[i%cols.length],a:1,rot:Math.random()*6,vr:(Math.random()-.5)*.4});}
+(function tick(){cx.clearRect(0,0,cc.width,cc.height);
+ parts.forEach(p=>{p.vy+=p.g;p.x+=p.vx;p.y+=p.vy;p.rot+=p.vr;p.a-=.008;cx.save();cx.globalAlpha=Math.max(0,p.a);cx.translate(p.x,p.y);cx.rotate(p.rot);cx.fillStyle=p.c;cx.fillRect(-p.r/2,-p.r/2,p.r,p.r*1.6);cx.restore();});
+ parts=parts.filter(p=>p.a>0&&p.y<cc.height+40);requestAnimationFrame(tick);})();
+
+screenWelcome();
+</script>
+
+<!-- ============ ENHANCEMENTS: Paper Swirl shader + GSAP wind text (progressive) ============ -->
+<script type="importmap">
+{"imports":{
+ "react":"https://esm.sh/react@19.0.0",
+ "react/jsx-runtime":"https://esm.sh/react@19.0.0/jsx-runtime",
+ "react-dom":"https://esm.sh/react-dom@19.0.0",
+ "react-dom/client":"https://esm.sh/react-dom@19.0.0/client",
+ "@paper-design/shaders-react":"https://esm.sh/@paper-design/shaders-react@0.0.77?external=react,react-dom",
+ "gsap":"https://esm.sh/gsap@3.12.5"
+}}
+</script>
+<script type="module">
+// GSAP wind-blown heading reveal (adapted from the wind-blown-text effect)
+try{
+ const {default:gsap}=await import("gsap");
+ const rnd=(a,b)=>a+Math.random()*(b-a);
+ window.GSAP_REVEAL=(el)=>{
+   const text=el.getAttribute("data-raw")||el.textContent;
+   el.setAttribute("data-raw",text);el.setAttribute("aria-label",text);
+   el.innerHTML=text.split("").map(c=>c===" "?'<span class="wc">&nbsp;</span>':`<span class="wc">${c.replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]))}</span>`).join("");
+   const chars=el.querySelectorAll(".wc");
+   gsap.set(el,{perspective:600});
+   gsap.fromTo(chars,
+     {opacity:0,x:()=>rnd(70,240),y:()=>rnd(-70,70),z:()=>rnd(-160,160),rotationX:()=>rnd(-260,260),rotationY:()=>rnd(-180,180),rotationZ:()=>rnd(-90,90)},
+     {opacity:1,x:0,y:0,z:0,rotationX:0,rotationY:0,rotationZ:0,duration:.9,ease:"power3.out",stagger:{each:.028,from:"random"}});
+ };
+ const cur=document.querySelector(".title,.q-label");if(cur)window.GSAP_REVEAL(cur);
+}catch(e){console.warn("gsap enhancement skipped:",e);}
+
+// Paper Design Swirl shader background (the exact wrapped config)
+try{
+ const React=(await import("react")).default;
+ const {createRoot}=await import("react-dom/client");
+ const {Swirl}=await import("@paper-design/shaders-react");
+ const root=createRoot(document.getElementById("bg"));
+ root.render(React.createElement(Swirl,{
+   colors:["#ffd1d1","#ff8a8a","#660000"],colorBack:"#330000",
+   bandCount:4,twist:0.07,center:0.64,proportion:0.52,softness:0,
+   noise:0.2,noiseFrequency:0.4,speed:0.32,
+   style:{position:"absolute",inset:0,width:"100%",height:"100%"}
+ }));
+}catch(e){console.warn("shader enhancement skipped (using gradient fallback):",e);}
+</script>
+</body>
+</html>

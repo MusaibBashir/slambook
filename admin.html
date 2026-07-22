@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Slambook · Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+:root{--bg:#330000;--rose1:#ffd1d1;--rose2:#ff8a8a;--cream:#f4ece2;--ink:#f6efe6;--muted:rgba(246,239,230,.58);--line:rgba(255,209,209,.2);--line2:rgba(255,209,209,.12);--ease:cubic-bezier(.22,1,.36,1)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',system-ui,sans-serif;color:var(--ink);background:var(--bg);min-height:100vh;-webkit-font-smoothing:antialiased}
+#bg{position:fixed;inset:0;z-index:0;background:radial-gradient(130% 130% at 66% 30%,#7a1616 0%,#4a0505 46%,#280000 100%)}
+#bg canvas{display:block;width:100vw!important;height:100vh!important}
+.halftone{position:fixed;inset:0;z-index:1;pointer-events:none;mix-blend-mode:soft-light;opacity:.45;background-image:radial-gradient(rgba(255,255,255,.9) .6px,transparent 1.1px),radial-gradient(rgba(0,0,0,.7) .6px,transparent 1.1px);background-size:4px 4px,4px 4px;background-position:0 0,2px 2px}
+.shell{position:relative;z-index:2;max-width:1100px;margin:0 auto;padding:36px 24px 90px}
+.topbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;margin-bottom:28px}
+.brand{font-family:'Inter Tight',sans-serif;font-size:30px;font-weight:800;letter-spacing:-.02em}
+.brand .grad{background:linear-gradient(96deg,var(--rose1),var(--rose2) 60%,#ffb0a0);-webkit-background-clip:text;background-clip:text;color:transparent}
+.brand .sub{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);display:block;font-weight:400;margin-top:3px}
+.tools{display:flex;gap:9px;flex-wrap:wrap}
+.btn{cursor:pointer;font-family:'Inter Tight',sans-serif;font-weight:600;font-size:14px;border:none;border-radius:99px;padding:10px 19px;transition:transform .2s var(--ease),background .2s;display:inline-flex;align-items:center;gap:7px}
+.btn.primary{background:var(--cream);color:#3a0505}
+.btn.primary:hover{transform:translateY(-2px)}
+.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink)}
+.btn.ghost:hover{background:rgba(255,255,255,.07)}
+.btn:disabled{opacity:.4;pointer-events:none}
+.gate{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(15,0,0,.7);backdrop-filter:blur(8px)}
+.gatecard{width:min(400px,92vw);background:rgba(28,2,2,.5);border:1px solid var(--line);border-radius:18px;padding:36px;text-align:center;backdrop-filter:blur(16px)}
+.gatecard .ico{width:40px;height:40px;color:var(--rose2);margin:0 auto 10px}
+.gatecard h2{font-family:'Inter Tight',sans-serif;font-size:25px;font-weight:800;margin:2px 0 6px}
+.gatecard p{color:var(--muted);font-size:14px;margin-bottom:18px}
+.gatecard input{width:100%;text-align:center;letter-spacing:.14em;background:rgba(255,255,255,.05);border:1px solid var(--line);color:var(--ink);font-family:inherit;font-size:17px;padding:14px;border-radius:12px;outline:none;margin-bottom:14px}
+.gatecard input:focus{border-color:var(--rose2);box-shadow:0 0 0 4px rgba(255,138,138,.14)}
+.err{color:var(--rose2);font-size:13px;min-height:18px;margin-bottom:6px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:13px;margin-bottom:28px}
+.stat{background:rgba(28,2,2,.34);border:1px solid var(--line);border-radius:16px;padding:20px 22px;backdrop-filter:blur(12px)}
+.stat .k{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.stat .v{font-family:'Inter Tight',sans-serif;font-size:40px;font-weight:800;margin-top:6px;line-height:1}
+.stat .v small{font-size:15px;color:var(--muted);font-weight:500}
+.stat .hearts{display:flex;gap:3px;margin-top:8px;color:var(--rose2)}
+.stat .hearts svg{width:15px;height:15px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:16px}
+.entry{background:rgba(28,2,2,.36);border:1px solid var(--line);border-radius:18px;padding:24px;backdrop-filter:blur(14px);position:relative;transition:transform .25s var(--ease)}
+.entry:hover{transform:translateY(-4px)}
+.entry .top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.entry h3{font-family:'Inter Tight',sans-serif;font-size:23px;font-weight:800;line-height:1.05}
+.entry .nick{color:var(--muted);font-size:14px}
+.entry .when{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--muted);margin:3px 0 14px;letter-spacing:.05em}
+.rating-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.pill{display:flex;align-items:center;gap:6px;background:rgba(255,138,138,.1);border:1px solid rgba(255,138,138,.32);border-radius:10px;padding:6px 11px;font-size:12px}
+.pill svg{width:14px;height:14px;color:var(--rose2)}
+.pill b{font-family:'Inter Tight',sans-serif;font-weight:800;color:var(--rose1)}
+.qa{border-top:1px solid var(--line2);padding-top:11px;margin-top:11px}
+.qa b{display:flex;align-items:center;gap:7px;font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--rose2);margin-bottom:4px;font-weight:500}
+.qa b svg{width:13px;height:13px}
+.qa p{font-size:14px;line-height:1.5;word-break:break-word}
+.del{background:rgba(255,255,255,.05);border:1px solid var(--line);color:var(--muted);cursor:pointer;font-size:12px;border-radius:9px;padding:6px 11px;flex-shrink:0;font-family:'Inter Tight',sans-serif}
+.del:hover{color:var(--rose2);border-color:rgba(255,138,138,.5)}
+.empty,.loading{text-align:center;color:var(--muted);padding:70px 0;font-size:16px}
+@media(max-width:520px){.entry{padding:20px}}
+</style>
+</head>
+<body>
+<div id="bg"></div>
+<div class="halftone"></div>
+
+<div class="gate" id="gate">
+  <div class="gatecard">
+    <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10.5" width="14" height="9.5" rx="2"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5M12 14.5v2.5"/></svg></div>
+    <h2>Admin access</h2>
+    <p>Enter your passcode to read everyone's slambook entries.</p>
+    <input type="password" id="pass" placeholder="passcode" autocomplete="off"/>
+    <div class="err" id="gateErr"></div>
+    <button class="btn primary" id="unlock" style="width:100%;justify-content:center">Unlock →</button>
+  </div>
+</div>
+
+<div class="shell" id="shell" style="display:none">
+  <div class="topbar">
+    <div class="brand">My <span class="grad">Slambook</span><span class="sub">Admin dashboard</span></div>
+    <div class="tools">
+      <button class="btn ghost" id="refresh">Refresh</button>
+      <button class="btn ghost" id="export">Export JSON</button>
+      <button class="btn ghost" id="lock">Lock</button>
+    </div>
+  </div>
+  <div class="stats" id="stats"></div>
+  <div id="list"><div class="loading">Loading…</div></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPA_URL="https://hnwpngmnhepoogeyujup.supabase.co";
+const SUPA_KEY="sb_publishable_P6I4s-yQmoqKoM2BBrrh6Q_J47ay59b";
+const sb=window.supabase.createClient(SUPA_URL,SUPA_KEY);
+const RATE_MAX=5;
+
+const I={
+ user:'<path d="M12 12.5a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4.5 20c.6-3.7 3.8-5.5 7.5-5.5s6.9 1.8 7.5 5.5"/>',
+ spark:'<path d="M12 3l1.9 5.6L19 10l-5.1 1.4L12 17l-1.9-5.6L5 10l5.1-1.4z"/>',
+ cake:'<path d="M4 20.5h16M5 20.5V14h14v6.5M6 14c0-1.6 12-1.6 12 0M12 6.5V9M9 7v2M15 7v2"/>',
+ quote:'<path d="M4.5 5.5h15v9H9l-4.5 4v-13z"/>',
+ face:'<path d="M12 20.5a8.5 8.5 0 1 0 0-17 8.5 8.5 0 0 0 0 17zM8.8 14c1.7 1.7 4.7 1.7 6.4 0M9 10h.01M15 10h.01"/>',
+ music:'<path d="M9 17.5V6l10-2v11.5M9 17.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0zM19 15.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/>',
+ bowl:'<path d="M3.5 11.5h17a8.5 8.5 0 0 1-17 0zM8.5 8c0-1.5 1-2 1-3M12 8c0-1.5 1-2 1-3M15.5 8c0-1.5 1-2 1-3"/>',
+ drop:'<path d="M12 3.5s6 6.3 6 10.5a6 6 0 1 1-12 0c0-4.2 6-10.5 6-10.5z"/>',
+ rocket:'<path d="M5.5 15c-1.2 1.8-1.3 4-1.3 4s2.2-.1 4-1.3M9 15l-3-3c.8-5 4.6-8.4 9.5-9.3.9 4.9-2.5 8.7-7.5 9.5L9 15zM14 10.2a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"/>',
+ star:'<path d="M12 3.5l2.7 5.9 6.3.6-4.8 4.2 1.5 6.3L12 17.4l-5.7 3.1 1.5-6.3L3 10l6.3-.6z"/>',
+ sprout:'<path d="M12 21v-8.5M12 12.5c-3.3 0-5.5-2.2-5.5-5.5 3.3 0 5.5 2.2 5.5 5.5zM12 11c0-3 2-4.5 4.5-4.5 0 3-2 4.5-4.5 4.5z"/>',
+ heart:'<path d="M12 20s-7.2-4.6-7.2-10A4.2 4.2 0 0 1 12 7a4.2 4.2 0 0 1 7.2 3c0 5.4-7.2 10-7.2 10z"/>',
+ hands:'<path d="M12 17.5s-4.3-2.7-4.3-5.9A2.5 2.5 0 0 1 12 9.5a2.5 2.5 0 0 1 4.3 2.1c0 3.2-4.3 5.9-4.3 5.9zM4 13l3.2 4.4M20 13l-3.2 4.4"/>',
+ film:'<path d="M4.5 5.5h15v13h-15zM8.5 5.5v13M15.5 5.5v13M4.5 9h4M4.5 15h4M15.5 9h4M15.5 15h4"/>',
+ camera:'<path d="M3.5 8h4l1.5-2.2h6L16.5 8h4v11h-17zM12 16.5a3.3 3.3 0 1 0 0-6.6 3.3 3.3 0 0 0 0 6.6z"/>',
+ wand:'<path d="M4.5 19.5l9.5-9.5M15 6l.9-2 .9 2 2 .9-2 .9-.9 2-.9-2-2-.9zM19 12.5l.5-1.2.5 1.2 1.2.5-1.2.5-.5 1.2-.5-1.2-1.2-.5z"/>',
+ compass:'<path d="M12 20.5a8.5 8.5 0 1 0 0-17 8.5 8.5 0 0 0 0 17zM15.5 8.5l-2.2 5.3-5.3 2.2 2.2-5.3z"/>',
+ flag:'<path d="M6 21V4M6 4.8h11.5l-2.3 3.3 2.3 3.3H6"/>',
+ wrench:'<path d="M15.4 6.3a4 4 0 0 0-5.2 5.2l-6 6 2.3 2.3 6-6a4 4 0 0 0 5.2-5.2l-2.2 2.2-2.1-.6-.6-2.1z"/>',
+ glass:'<path d="M6 3.5h12M6 20.5h12M7.5 3.5c0 4.5 9 5 9 8.5s-9 4-9 8.5M16.5 3.5c0 4.5-9 5-9 8.5"/>',
+ shake:'<path d="M3.5 12l4-4 3 2.4 3-2.4 4 4M8.5 8.4l3 3M12 15.4l-2-2M6 12.2v3.8M18 12.2v3.8"/>',
+ clap:'<path d="M4 10h16v9H4zM4 10l2-4 12 2.4M6 6l1.6 3.4M10 6.8l1.6 3.4M14 7.6l1.6 3.4"/>',
+ tv:'<path d="M4 8.5h16v10H4zM9 4.5l3 3 3-3"/>',
+ book:'<path d="M6.5 4.5H18v15H6.5A1.5 1.5 0 0 1 5 18V6a1.5 1.5 0 0 1 1.5-1.5zM8.5 4.5v15"/>',
+ pin:'<path d="M12 21s6-5.3 6-10a6 6 0 1 0-12 0c0 4.7 6 10 6 10zM12 13.2a2.4 2.4 0 1 0 0-4.8 2.4 2.4 0 0 0 0 4.8z"/>',
+ game:'<path d="M8 15.5l-1.3 1.8A2.5 2.5 0 0 1 2.1 15.4L3.4 10A3 3 0 0 1 6.3 7.5h11.4a3 3 0 0 1 2.9 2.5l1.3 5.4a2.5 2.5 0 0 1-4.6 1.9L16 15.5zM6.5 10.5v2.5M5.2 11.7h2.6M15.5 11h.01M17.8 12.4h.01"/>',
+ sun:'<path d="M12 8.2a3.8 3.8 0 1 0 0 7.6 3.8 3.8 0 0 0 0-7.6zM12 3v2.2M12 18.8V21M4.2 4.2l1.6 1.6M18.2 18.2l1.6 1.6M3 12h2.2M18.8 12H21M4.2 19.8l1.6-1.6M18.2 5.8l1.6-1.6"/>'
+};
+const ic=k=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${I[k]||''}</svg>`;
+
+// key -> [icon, label]
+const QMETA={
+ name:["user","Name"],nick:["spark","Nickname"],bday:["cake","Birthday"],
+ three_words:["quote","Them in 3 words"],vibe:["face","Their vibe"],song_you:["music","Song on repeat for them"],
+ food:["bowl","Comfort food"],color:["drop","Signature colour"],
+ fav_movie:["clap","Favourite movie"],fav_song:["music","Favourite song ever"],fav_show:["tv","Show they rewatch"],
+ fav_book:["book","A book they love"],fav_place:["pin","Favourite place"],hobby:["game","Nerds out about"],
+ happy_place:["sun","Makes their day better"],life_motto:["quote","Life motto"],
+ dream:["rocket","A dream they're chasing"],
+ my_quality:["star","A quality of theirs"],how_met:["sprout","How our friendship began"],
+ friend_rating:["heart","Friendship rating"],me_rating:["hands","Rated me as a friend"],
+ genre:["film","Our friendship genre"],memory:["camera","Favourite memory of us"],
+ song_us:["music","Song that reminds them of us"],steal_quality:["wand","Quality they'd steal from me"],
+ bucket:["compass","Bucket-list with me"],green_flag:["flag","Best thing about me"],
+ change:["wrench","One thing they'd change about me"],miss_rating:["glass","How much they'd miss me"],
+ promise:["shake","Their promise / advice"]
+};
+const RATING_KEYS=["friend_rating","me_rating","miss_rating"];
+const SHORT={friend_rating:"Friendship",me_rating:"Me as a friend",miss_rating:"Would miss me"};
+let PASS="",entries=[];
+
+const gate=document.getElementById("gate"),shell=document.getElementById("shell");
+const passInp=document.getElementById("pass"),gateErr=document.getElementById("gateErr");
+document.getElementById("unlock").onclick=tryUnlock;
+passInp.addEventListener("keydown",e=>{if(e.key==="Enter")tryUnlock();});
+passInp.focus();
+
+async function tryUnlock(){
+ const p=passInp.value.trim();if(!p)return;
+ gateErr.textContent="";document.getElementById("unlock").textContent="Checking…";
+ const {data,error}=await sb.rpc("get_slambook_entries",{pass:p});
+ document.getElementById("unlock").textContent="Unlock →";
+ if(error){gateErr.textContent="Wrong passcode.";passInp.select();return;}
+ PASS=p;entries=data||[];gate.style.display="none";shell.style.display="block";render();
+}
+async function reload(){const {data,error}=await sb.rpc("get_slambook_entries",{pass:PASS});if(!error){entries=data||[];render();}}
+
+function avg(key){const v=entries.map(e=>e.data&&e.data[key]).filter(x=>typeof x==="number");if(!v.length)return null;return v.reduce((a,b)=>a+b,0)/v.length;}
+function heartRow(v){if(v==null)return"";let s="";for(let i=1;i<=RATE_MAX;i++)s+=`<span style="opacity:${i<=Math.round(v)?1:.25}">${ic('heart')}</span>`;return s;}
+
+function render(){
+ const st=document.getElementById("stats");
+ const f=avg("friend_rating"),m=avg("me_rating"),mi=avg("miss_rating");
+ const cell=(k,v,h)=>`<div class="stat"><div class="k">${k}</div><div class="v">${v}</div>${h?`<div class="hearts">${h}</div>`:''}</div>`;
+ st.innerHTML=cell("Total signatures",entries.length,"")+
+   cell("Avg friendship",f!=null?`${f.toFixed(1)}<small>/${RATE_MAX}</small>`:"·",heartRow(f))+
+   cell("Avg rating of me",m!=null?`${m.toFixed(1)}<small>/${RATE_MAX}</small>`:"·",heartRow(m))+
+   cell("Avg 'would miss me'",mi!=null?`${mi.toFixed(1)}<small>/${RATE_MAX}</small>`:"·",heartRow(mi));
+
+ const list=document.getElementById("list");
+ if(!entries.length){list.innerHTML=`<div class="empty">No one has signed yet. Share the slambook link.</div>`;return;}
+ list.innerHTML=`<div class="grid">`+entries.map(e=>{
+   const d=e.data||{};
+   const when=new Date(e.created_at).toLocaleString(undefined,{month:'short',day:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit'});
+   const ratings=RATING_KEYS.filter(k=>typeof d[k]==="number").map(k=>`<div class="pill">${ic(QMETA[k][0])} ${SHORT[k]}<b>${d[k]}/${RATE_MAX}</b></div>`).join("");
+   const skip=new Set([...RATING_KEYS,"name","nick"]);
+   const qas=Object.keys(QMETA).filter(k=>!skip.has(k)&&d[k]).map(k=>`<div class="qa"><b>${ic(QMETA[k][0])} ${QMETA[k][1]}</b><p>${esc(d[k])}</p></div>`).join("");
+   return `<div class="entry"><div class="top"><div><h3>${esc(d.name||"Anonymous")}</h3>${d.nick?`<div class="nick">“${esc(d.nick)}”</div>`:''}</div><button class="del" data-id="${e.id}">Delete</button></div>
+     <div class="when">${when}</div>${ratings?`<div class="rating-row">${ratings}</div>`:''}${qas}</div>`;
+ }).join("")+`</div>`;
+ list.querySelectorAll(".del").forEach(b=>b.onclick=async()=>{
+   if(!confirm("Delete this entry permanently?"))return;
+   const {error}=await sb.rpc("delete_slambook_entry",{pass:PASS,entry_id:b.dataset.id});
+   if(error){alert("Delete failed.");return;}
+   entries=entries.filter(x=>x.id!==b.dataset.id);render();
+ });
+}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+document.getElementById("refresh").onclick=reload;
+document.getElementById("lock").onclick=()=>{PASS="";entries=[];shell.style.display="none";gate.style.display="flex";passInp.value="";passInp.focus();};
+document.getElementById("export").onclick=()=>{const blob=new Blob([JSON.stringify(entries,null,2)],{type:"application/json"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=`slambook-entries-${new Date().toISOString().slice(0,10)}.json`;a.click();URL.revokeObjectURL(url);};
+</script>
+
+<script type="importmap">
+{"imports":{"react":"https://esm.sh/react@19.0.0","react/jsx-runtime":"https://esm.sh/react@19.0.0/jsx-runtime","react-dom":"https://esm.sh/react-dom@19.0.0","react-dom/client":"https://esm.sh/react-dom@19.0.0/client","@paper-design/shaders-react":"https://esm.sh/@paper-design/shaders-react@0.0.77?external=react,react-dom"}}
+</script>
+<script type="module">
+try{
+ const React=(await import("react")).default;
+ const {createRoot}=await import("react-dom/client");
+ const {Swirl}=await import("@paper-design/shaders-react");
+ createRoot(document.getElementById("bg")).render(React.createElement(Swirl,{
+   colors:["#ffd1d1","#ff8a8a","#660000"],colorBack:"#330000",bandCount:4,twist:0.07,center:0.64,proportion:0.52,softness:0,noise:0.2,noiseFrequency:0.4,speed:0.28,
+   style:{position:"absolute",inset:0,width:"100%",height:"100%"}}));
+}catch(e){console.warn("shader skipped:",e);}
+</script>
+</body>
+</html>

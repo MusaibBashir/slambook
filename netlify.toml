@@ -1,0 +1,9 @@
+# Netlify config for the slambook (static site, no build step)
+[build]
+  publish = "."
+
+# Pretty URL: /admin -> admin.html
+[[redirects]]
+  from = "/admin"
+  to = "/admin.html"
+  status = 200
