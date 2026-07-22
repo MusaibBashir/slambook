@@ -48,6 +48,15 @@ body{font-family:'Inter',system-ui,sans-serif;color:var(--ink);background:var(--
 .field textarea{min-height:118px;line-height:1.55}
 .field input::placeholder,.field textarea::placeholder{color:rgba(246,239,230,.34)}
 .field input:focus,.field textarea:focus{border-color:var(--rose2);background:rgba(255,255,255,.07);box-shadow:0 0 0 4px rgba(255,138,138,.14)}
+.opt{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--rose1);border:1px solid rgba(255,138,138,.4);background:rgba(255,138,138,.1);border-radius:99px;padding:3px 10px;display:inline-block;margin-bottom:14px}
+.photo-drop{display:flex;flex-direction:column;align-items:center;gap:10px;border:1.5px dashed var(--line);border-radius:14px;padding:28px 20px;text-align:center;cursor:pointer;color:var(--muted);transition:border .2s,background .2s}
+.photo-drop:hover{border-color:var(--rose2);background:rgba(255,255,255,.03)}
+.photo-drop .pi{width:34px;height:34px;color:var(--rose2)}.photo-drop .pi svg{width:100%;height:100%}
+.photo-drop .pt{font-size:14px;line-height:1.5}
+.photo-prev{position:relative;display:inline-block;max-width:100%}
+.photo-prev img{max-width:100%;max-height:250px;border-radius:14px;border:1px solid var(--line);display:block}
+.photo-prev .rm{position:absolute;top:9px;right:9px;background:rgba(20,0,0,.82);border:1px solid var(--line);color:var(--ink);border-radius:99px;padding:6px 13px;font-size:12px;cursor:pointer;font-family:'Inter Tight',sans-serif;backdrop-filter:blur(6px)}
+.photo-prev .rm:hover{border-color:var(--rose2);color:var(--rose1)}
 
 .chips{display:flex;flex-wrap:wrap;gap:9px}
 .chip{cursor:pointer;user-select:none;padding:10px 17px;border-radius:99px;font-size:14px;font-weight:500;background:rgba(255,255,255,.03);border:1px solid var(--line);transition:all .2s var(--ease)}
@@ -139,6 +148,7 @@ const ic=k=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-w
 const QUESTIONS=[
  {key:"name",icon:"user",label:"First things first, what's your name?",hint:"So I know whose page this is.",type:"text",placeholder:"Type your name…",required:true},
  {key:"nick",icon:"spark",label:"What do I call you?",hint:"Nickname, inside joke, whatever sticks.",type:"text",placeholder:"e.g. bro, bestie, chief…"},
+ {key:"photo",icon:"camera",label:"Add a photo of you?",hint:"Completely optional. Skip it if you'd rather not.",type:"photo",optional:true},
  {key:"bday",icon:"cake",label:"When's your birthday?",hint:"So I never forget the cake.",type:"date"},
  {key:"three_words",icon:"quote",label:"Describe yourself in 3 words.",hint:"First three that come to mind.",type:"text",placeholder:"e.g. loud, loyal, curious"},
  {key:"vibe",icon:"face",label:"Your current vibe is…",hint:"Pick what fits today.",type:"choice",options:["Dreamy","Chaotic","Cozy","Main character","Sleepy","Unbothered"]},
@@ -190,7 +200,7 @@ function screenWelcome(){
  const n=swap(`<div class="panel center">
    <span class="label">a slambook, but make it us</span>
    <h1 class="title">Sign <span class="grad">my page</span>.<br/><span class="thin">Tell me about us.</span></h1>
-   <p class="sub" style="margin:0 auto 28px">${QUESTIONS.length} questions: about you, and about us. Rate me, roast me, dream with me. Two minutes, and I read every word.</p>
+   <p class="sub" style="margin:0 auto 28px">${QUESTIONS.filter(q=>q.type!=='photo').length} questions (and an optional photo): about you, and about us. Rate me, roast me, dream with me. Two minutes, and I read every word.</p>
    <div class="stack"><button class="btn primary" id="start">Start →</button></div></div>`);
  revealHeading(n.querySelector(".title"));
  n.querySelector("#start").onclick=()=>{answers={};idx=0;screenQuestion();};
@@ -204,6 +214,7 @@ function screenQuestion(){
  else if(q.type==="textarea")control=`<div class="field"><textarea id="inp" placeholder="${q.placeholder||''}">${escH(val)}</textarea></div>`;
  else if(q.type==="choice")control=`<div class="chips" id="chips">`+q.options.map(o=>`<span class="chip ${val===o?'on':''}" data-v="${escA(o)}">${o}</span>`).join("")+`</div>`;
  else if(q.type==="rating"){let h="";for(let i=1;i<=RATE_MAX;i++)h+=`<span class="rt ${val&&i<=val?'on':''}" data-v="${i}">${ic('heart')}</span>`;control=`<div class="rate" id="rate">${h}<span class="rnum" id="rnum">${val?val+' / '+RATE_MAX:''}</span></div>`;}
+ else if(q.type==="photo"){control=`<span class="opt">Optional · you can skip this</span><div class="field"><input type="file" id="photoInp" accept="image/*" style="display:none"/><div id="photoWrap">${val?photoPreviewHTML(val):photoDropHTML()}</div></div>`;}
  const pct=Math.round(idx/QUESTIONS.length*100);
  const n=swap(`<div class="panel">
    <div class="progress"><div class="bar"><i style="width:${pct}%"></i></div><span class="count">${String(idx+1).padStart(2,'0')} / ${QUESTIONS.length}</span></div>
@@ -223,6 +234,14 @@ function screenQuestion(){
    hs.forEach(h=>{h.onmouseenter=()=>paint(+h.dataset.v);h.onmouseleave=()=>paint(answers[q.key]||0);
      h.onclick=()=>{const v=+h.dataset.v;answers[q.key]=(answers[q.key]===v?0:v);paint(answers[q.key]);num.textContent=answers[q.key]?answers[q.key]+' / '+RATE_MAX:'';};});
  }
+ if(q.type==="photo"){
+   const fileInp=n.querySelector("#photoInp"),wrap=n.querySelector("#photoWrap");
+   const bind=()=>{const drop=wrap.querySelector("#photoDrop");if(drop)drop.onclick=()=>fileInp.click();
+     const rm=wrap.querySelector("#photoRm");if(rm)rm.onclick=()=>{answers.photo="";wrap.innerHTML=photoDropHTML();bind();};};
+   bind();
+   fileInp.onchange=()=>{const f=fileInp.files&&fileInp.files[0];if(!f)return;
+     processImage(f,src=>{answers.photo=src;wrap.innerHTML=photoPreviewHTML(src);bind();});};
+ }
  function collect(){if(inp)answers[q.key]=inp.value.trim();}
  function go(dir){collect();
    if(dir>0&&q.required&&!String(answers[q.key]||"").trim()){inp&&inp.focus();shake(n.querySelector(".field")||n);return;}
@@ -233,6 +252,7 @@ function screenQuestion(){
 
 function screenReview(){
  const rows=QUESTIONS.map(q=>{let v=answers[q.key];
+   if(q.type==="photo")return `<div class="rev"><b>${escH(q.label)}</b>${v?`<img src="${v}" alt="photo" style="margin-top:6px;max-width:130px;border-radius:10px;border:1px solid var(--line);display:block"/>`:'<p class="miss">(no photo added)</p>'}</div>`;
    const shown=q.type==="rating"?(v?`${v} / ${RATE_MAX}`:""):String(v||"").trim();
    return `<div class="rev"><b>${escH(q.label)}</b><p class="${shown?'':'miss'}">${shown?escH(shown):'(left blank)'}</p></div>`;}).join("");
  const n=swap(`<div class="panel">
@@ -265,6 +285,15 @@ function screenDone(){
 
 function escH(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function escA(s){return escH(s);}
+function photoDropHTML(){return `<div class="photo-drop" id="photoDrop"><div class="pi">${ic('camera')}</div><div class="pt">Tap to add a photo<br/><span style="opacity:.7">full quality, optional</span></div></div>`;}
+function photoPreviewHTML(src){return `<div class="photo-prev"><img src="${src}" alt="your photo"/><button class="rm" id="photoRm" type="button">Remove</button></div>`;}
+function processImage(file,cb){
+ // store the original image exactly as-is, no resizing or compression
+ const reader=new FileReader();
+ reader.onload=()=>cb(reader.result);
+ reader.onerror=()=>toast("Couldn't read that image, try another.",true);
+ reader.readAsDataURL(file);
+}
 function shake(el){el.animate([{transform:'translateX(0)'},{transform:'translateX(-8px)'},{transform:'translateX(8px)'},{transform:'translateX(-5px)'},{transform:'translateX(0)'}],{duration:320,easing:'ease-in-out'});}
 const toastEl=document.getElementById("toast");let toastT;
 function toast(m,err){toastEl.textContent=m;toastEl.classList.toggle("err",!!err);toastEl.classList.add("show");clearTimeout(toastT);toastT=setTimeout(()=>toastEl.classList.remove("show"),3600);}
